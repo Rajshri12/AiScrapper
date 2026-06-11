@@ -1,0 +1,13 @@
+**/__pycache__
+**/*.pyc
+**/*.pyo
+*.pdf
+*.tex
+*.log
+.env
+.claude/
+.git/
+node_modules/
+dist/
+build/
+*.egg-info/

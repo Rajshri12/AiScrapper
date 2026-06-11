@@ -1,0 +1,376 @@
+# ApplyPilot ATS Portal Registry
+# Companies with public ATS JSON APIs — no browser needed.
+# provider: greenhouse | ashby | lever | workable | smartrecruiters
+# slug: the company's ATS board slug
+# enabled: true/false
+
+portals:
+
+  # ── AI Labs & LLM Providers ────────────────────────────────────────────────
+  - name: Anthropic
+    provider: greenhouse
+    slug: anthropic
+    enabled: true
+
+  - name: Cohere
+    provider: ashby
+    slug: cohere
+    enabled: true
+
+  - name: LangChain
+    provider: ashby
+    slug: langchain
+    enabled: true
+
+  - name: Pinecone
+    provider: ashby
+    slug: pinecone
+    enabled: true
+
+  - name: Mistral AI
+    provider: lever
+    slug: mistral
+    enabled: true
+
+  - name: Hugging Face
+    provider: workable
+    slug: huggingface
+    enabled: true
+
+  - name: Aleph Alpha
+    provider: ashby
+    slug: aleph-alpha
+    enabled: true
+
+  - name: DeepL
+    provider: ashby
+    slug: deepl
+    enabled: true
+
+  # ── Voice AI & Conversational AI ──────────────────────────────────────────
+  - name: ElevenLabs
+    provider: ashby
+    slug: elevenlabs
+    enabled: true
+
+  - name: Deepgram
+    provider: ashby
+    slug: deepgram
+    enabled: true
+
+  - name: Vapi
+    provider: ashby
+    slug: vapi
+    enabled: true
+
+  - name: Bland AI
+    provider: ashby
+    slug: bland
+    enabled: true
+
+  - name: PolyAI
+    provider: greenhouse
+    slug: polyai
+    enabled: true
+
+  - name: Parloa
+    provider: greenhouse
+    slug: parloa
+    enabled: true
+
+  - name: Hume AI
+    provider: greenhouse
+    slug: humeai
+    enabled: true
+
+  - name: Speechmatics
+    provider: greenhouse
+    slug: speechmatics
+    enabled: true
+
+  # ── AI-Native Platforms ────────────────────────────────────────────────────
+  - name: Vercel
+    provider: greenhouse
+    slug: vercel
+    enabled: true
+
+  - name: Airtable
+    provider: greenhouse
+    slug: airtable
+    enabled: true
+
+  - name: Temporal
+    provider: greenhouse
+    slug: temporal
+    enabled: true
+
+  - name: Arize AI
+    provider: greenhouse
+    slug: arizeai
+    enabled: true
+
+  - name: RunPod
+    provider: greenhouse
+    slug: runpod
+    enabled: true
+
+  - name: Glean
+    provider: greenhouse
+    slug: gleanwork
+    enabled: true
+
+  - name: Sierra
+    provider: ashby
+    slug: sierra
+    enabled: true
+
+  - name: Decagon
+    provider: ashby
+    slug: decagon
+    enabled: true
+
+  - name: Lindy
+    provider: ashby
+    slug: lindy
+    enabled: true
+
+  - name: Perplexity
+    provider: ashby
+    slug: perplexity
+    enabled: true
+
+  - name: Clay Labs
+    provider: ashby
+    slug: clay-labs
+    enabled: true
+
+  # ── No-Code / Automation ───────────────────────────────────────────────────
+  - name: n8n
+    provider: ashby
+    slug: n8n
+    enabled: true
+
+  - name: Zapier
+    provider: ashby
+    slug: zapier
+    enabled: true
+
+  - name: Boomi
+    provider: greenhouse
+    slug: boomilp
+    enabled: true
+
+  - name: Intercom
+    provider: greenhouse
+    slug: intercom
+    enabled: true
+
+  - name: Lovable
+    provider: ashby
+    slug: lovable
+    enabled: true
+
+  - name: Attio
+    provider: ashby
+    slug: attio
+    enabled: true
+
+  - name: Supabase
+    provider: ashby
+    slug: supabase
+    enabled: true
+
+  - name: Resend
+    provider: ashby
+    slug: resend
+    enabled: true
+
+  - name: Inngest
+    provider: ashby
+    slug: inngest
+    enabled: true
+
+  - name: WorkOS
+    provider: ashby
+    slug: workos
+    enabled: true
+
+  # ── Developer Tools ────────────────────────────────────────────────────────
+  - name: Weights & Biases (CoreWeave)
+    provider: greenhouse
+    slug: coreweave
+    enabled: true
+
+  - name: PlanetScale
+    provider: greenhouse
+    slug: planetscale
+    enabled: true
+
+  - name: Hightouch
+    provider: greenhouse
+    slug: hightouch
+    enabled: true
+
+  - name: Tinybird
+    provider: ashby
+    slug: tinybird
+    enabled: true
+
+  - name: Zep AI
+    provider: ashby
+    slug: zep-ai
+    enabled: true
+
+  # ── Fintech ────────────────────────────────────────────────────────────────
+  - name: Palantir
+    provider: lever
+    slug: palantir
+    enabled: true
+
+  - name: Spotify
+    provider: lever
+    slug: spotify
+    enabled: true
+
+  - name: Qonto
+    provider: lever
+    slug: qonto
+    enabled: true
+
+  - name: Adyen
+    provider: smartrecruiters
+    slug: Adyen
+    enabled: true
+
+  - name: SumUp
+    provider: greenhouse
+    slug: sumup
+    enabled: true
+
+  - name: Trade Republic
+    provider: greenhouse
+    slug: traderepublicbank
+    enabled: true
+
+  - name: N26
+    provider: greenhouse
+    slug: n26
+    enabled: true
+
+  # ── Enterprise / Infra ─────────────────────────────────────────────────────
+  - name: Runway
+    provider: greenhouse
+    slug: runwayml
+    enabled: true
+
+  - name: Black Forest Labs
+    provider: greenhouse
+    slug: blackforestlabs
+    enabled: true
+
+  - name: Isomorphic Labs
+    provider: greenhouse
+    slug: isomorphiclabs
+    enabled: true
+
+  - name: Stability AI
+    provider: greenhouse
+    slug: stabilityai
+    enabled: true
+
+  - name: Celonis
+    provider: greenhouse
+    slug: celonis
+    enabled: true
+
+  - name: GetYourGuide
+    provider: greenhouse
+    slug: getyourguide
+    enabled: true
+
+  - name: Factorial
+    provider: greenhouse
+    slug: factorial
+    enabled: true
+
+  - name: Contentful
+    provider: greenhouse
+    slug: contentful
+    enabled: true
+
+  - name: Scandit
+    provider: greenhouse
+    slug: scandit
+    enabled: true
+
+  - name: Photoroom
+    provider: ashby
+    slug: photoroom
+    enabled: true
+
+  - name: Synthesia
+    provider: ashby
+    slug: synthesia
+    enabled: true
+
+  - name: Klue
+    provider: ashby
+    slug: klue
+    enabled: true
+
+  - name: Travelperk
+    provider: ashby
+    slug: travelperk
+    enabled: true
+
+  # ── Big Tech / Global ──────────────────────────────────────────────────────
+  - name: Stripe
+    provider: greenhouse
+    slug: stripe
+    enabled: true
+
+  - name: Airbnb
+    provider: greenhouse
+    slug: airbnb
+    enabled: true
+
+  - name: Figma
+    provider: greenhouse
+    slug: figma
+    enabled: true
+
+  - name: Postman
+    provider: greenhouse
+    slug: postman
+    enabled: true
+
+  - name: Descript
+    provider: greenhouse
+    slug: descript
+    enabled: true
+
+  - name: Linear
+    provider: ashby
+    slug: linear
+    enabled: true
+
+  # ── India Startups ─────────────────────────────────────────────────────────
+  - name: Meesho
+    provider: lever
+    slug: meesho
+    enabled: true
+
+  - name: Paytm
+    provider: lever
+    slug: paytm
+    enabled: true
+
+  - name: CRED
+    provider: lever
+    slug: cred
+    enabled: true
+
+  - name: PhonePe
+    provider: greenhouse
+    slug: phonepe
+    enabled: true

@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Env / secrets
+.env
+*.env.local
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# ApplyPilot runtime data (stays in ~/.applypilot/, not the repo)
+jobs.db
+tailored_resumes/
+cover_letters/
+*.pdf
+*.tex
+
+# Claude
+.claude/

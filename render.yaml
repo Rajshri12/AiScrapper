@@ -1,0 +1,46 @@
+services:
+  # ── Cron Job: runs the full pipeline on a schedule ──────────────────────────
+  # Change to type: worker if you want always-on (Background Worker mode)
+  - type: cron
+    name: applypilot-pipeline
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Run every morning at 8:30 AM IST (3:00 AM UTC)
+    schedule: "0 3 * * *"
+
+    # Persistent disk: mounts at /data so SQLite + resumes survive redeploys
+    disk:
+      name: applypilot-data
+      mountPath: /data
+      sizeGB: 5       # enough for SQLite + thousands of tailored PDFs
+
+    envVars:
+      # Secrets — set these in the Render dashboard, NOT here
+      - key: OPENAI_API_KEY
+        sync: false   # means: set manually in Render UI
+      - key: ANTHROPIC_API_KEY
+        sync: false   # needed by Claude Code CLI for auto-apply
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false
+
+      # Optional
+      - key: CAPSOLVER_API_KEY
+        sync: false
+
+      # App config
+      - key: APPLYPILOT_DIR
+        value: /data
+      - key: LLM_MODEL
+        value: gpt-4o-mini
+      - key: LLM_FALLBACK_MODEL
+        value: gpt-4o-mini
+
+      # Chromium headless — no display needed
+      - key: CHROME_PATH
+        value: /usr/bin/chromium
+      - key: DISPLAY
+        value: ""
