@@ -576,6 +576,10 @@ def create_app():
         threading.Thread(target=_run_full_pipeline, daemon=True).start()
         return {"status": "started", "message": "Full pipeline triggered manually"}
 
+    @app.get("/")
+    def health():
+        return {"status": "ok"}
+
     @app.get("/status")
     def status():
         """Pipeline statistics, DB summary, and scheduler state."""
