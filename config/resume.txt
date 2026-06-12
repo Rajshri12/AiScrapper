@@ -1,0 +1,48 @@
+Raj Shri Guru
+Phone: +917781093999 | Email: rajshreeguru0@gmail.com | Bengaluru, KA
+LinkedIn: www.linkedin.com/in/raj-shri/ | GitHub: github.com/Rajshri12 | Website: rajshriguru.com
+
+SUMMARY
+Versatile Backend Engineer with expertise in Python, Java, and distributed systems architecture for high-scale environments. I bring proven experience in building robust microservices, optimizing data pipelines for AI integration, and maintaining mission-critical infrastructure.
+
+EXPERIENCE
+
+Trainee Software Engineer at Radware
+April 2025 - Present | Bengaluru, India
+- Engineered Python FastAPI REST endpoints for automated log collection from 200+ distributed security appliances, reducing data acquisition time by 40% for AI-agent training pipelines.
+- Optimized Databricks Spark pipelines using PySpark for agent-based threat detection, resulting in a 5% reduction in execution costs and a 22% improvement in throughput.
+- Containerized security data services using Docker to ensure environment parity across development and production, significantly reducing integration failures.
+Technologies: Python, FastAPI, Databricks, PySpark, Docker
+
+Apprentice at Fidelity Investments
+Oct 2023 - Oct 2024 | Bengaluru, India
+- Developed and enhanced production-grade backend services by migrating legacy Java 8 applications to Java 17, improving system performance and long-term maintainability.
+- Maintained service reliability in high-traffic production environments through proactive log analysis, monitoring, and collaborative issue triaging with operations teams.
+- Automated deployment and testing workflows using Jenkins and Shell scripting, streamlining CI/CD pipelines and reducing manual release overhead for enterprise microservices.
+Technologies: Java, Spring Boot, Jenkins, Shell Scripting, Linux
+
+TECHNICAL SKILLS
+Languages: Python, Java, TypeScript, JavaScript
+Backend and API: REST API Design, Microservices, FastAPI, Spring Boot
+Databases and Data: PostgreSQL, MongoDB, SQLite, Prisma ORM, Alembic
+AI/ML and LLMs: LangGraph, Multi-Agent Orchestration, RAG, Autonomous Agents
+Cloud and DevOps: Docker, Linux, CI/CD Pipelines, Databricks, Git
+
+PROJECTS
+
+IronCoder — Agentic Software Engineering Platform
+Technologies: OpenAI o3, LangGraph, Python, Docker, GitHub API | github.com/Rajshri12/IronCoder.git
+- Implemented a multi-agent orchestration framework using LangGraph to automate the software development lifecycle, including issue analysis, code generation, and pull request creation.
+- Achieved autonomous software delivery by integrating repository-aware retrieval and isolated Docker execution environments, ensuring valid and context-aware code generation.
+
+MindMesh — Multi-Agent Research & Intelligence Platform
+Technologies: OpenAI o3, LangGraph, FastAPI, PostgreSQL, Tavily | github.com/Rajshri12/MindMesh.git
+- Architected a reasoning-driven knowledge synthesis engine that utilizes web-scale retrieval and iterative validation loops to produce citation-backed strategic intelligence.
+- Enabled traceable decision paths and executive-ready analysis by coordinating specialized agents for evidence gathering, fact-checking, and structured report generation.
+
+EDUCATION
+
+Dayananda Sagar College of Engineering, Bangalore
+Bachelor of Engineering, Electronics and Telecommunication | 2019 - 2023
+CGPA: 9.40/10
+

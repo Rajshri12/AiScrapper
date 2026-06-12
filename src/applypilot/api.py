@@ -39,46 +39,62 @@ _scheduler = None
 _pipeline_lock = threading.Lock()  # prevent overlapping pipeline runs
 
 
+def _backlog_pending() -> int:
+    """Count jobs that still need scoring, tailoring, cover, or notify."""
+    from applypilot.database import get_connection, init_db
+    init_db()
+    conn = get_connection()
+    unscored = conn.execute(
+        "SELECT COUNT(*) FROM jobs WHERE full_description IS NOT NULL AND fit_score IS NULL"
+    ).fetchone()[0]
+    untailored = conn.execute(
+        "SELECT COUNT(*) FROM jobs WHERE fit_score >= 6"
+        " AND tailored_resume_path IS NULL AND COALESCE(tailor_attempts,0) < 5"
+    ).fetchone()[0]
+    unnotified = conn.execute(
+        "SELECT COUNT(*) FROM jobs WHERE tailored_resume_path IS NOT NULL AND notified_at IS NULL"
+    ).fetchone()[0]
+    return unscored + untailored + unnotified
+
+
 def _run_full_pipeline() -> None:
-    """Discover → enrich → then per-job: tailor → re-score → cover → webhook."""
+    """Backlog-first pipeline: clear score→tailor→cover→notify before discovering new jobs."""
     if not _pipeline_lock.acquire(blocking=False):
         log.info("[cron] Pipeline already running — skipping this tick")
         return
     try:
-        log.info("[cron] Starting scheduled pipeline run...")
+        log.info("[cron] Starting pipeline run...")
         from applypilot.config import load_env
         load_env()
 
-        # Stage 1: Discover new jobs
-        log.info("[cron] Stage: discover")
-        from applypilot.pipeline import _run_discover
-        _run_discover()
+        from applypilot.pipeline import (
+            _run_discover, _run_enrich, _run_score,
+            _run_tailor, _run_cover, _run_pdf, _run_notify,
+        )
 
-        # Stage 2: Enrich (fetch full descriptions for new jobs)
-        log.info("[cron] Stage: enrich")
-        from applypilot.pipeline import _run_enrich
-        _run_enrich()
+        backlog = _backlog_pending()
+        if backlog > 0:
+            log.info("[cron] Backlog: %d jobs pending — clearing before discovery", backlog)
+        else:
+            # No backlog — discover fresh jobs first
+            log.info("[cron] Stage: discover")
+            _run_discover()
+            log.info("[cron] Stage: enrich")
+            _run_enrich()
 
-        # Stage 3: Per-job pipeline for all enriched but not yet tailored jobs
-        from applypilot.database import get_connection, init_db
-        init_db()
-        conn = get_connection()
-        pending = conn.execute("""
-            SELECT url FROM jobs
-            WHERE full_description IS NOT NULL
-              AND (tailored_resume_path IS NULL)
-              AND COALESCE(tailor_attempts, 0) < 3
-            ORDER BY discovered_at DESC
-        """).fetchall()
+        # Always run the processing stages to clear whatever is pending
+        log.info("[cron] Stage: score")
+        _run_score()
+        log.info("[cron] Stage: tailor")
+        _run_tailor(min_score=6)
+        log.info("[cron] Stage: cover")
+        _run_cover(min_score=6)
+        log.info("[cron] Stage: pdf")
+        _run_pdf()
+        log.info("[cron] Stage: notify")
+        _run_notify(min_score=6, referral_threshold=9)
 
-        log.info("[cron] %d jobs to process through per-job pipeline", len(pending))
-        for row in pending:
-            try:
-                _run_single_job_pipeline(row[0])
-            except Exception as e:
-                log.error("[cron] Per-job pipeline failed for %s: %s", row[0], e, exc_info=True)
-
-        log.info("[cron] Scheduled pipeline run complete")
+        log.info("[cron] Pipeline run complete")
     except Exception as e:
         log.error("[cron] Pipeline run failed: %s", e, exc_info=True)
     finally:
