@@ -593,7 +593,7 @@ def create_app():
         threading.Thread(target=_run_full_pipeline, daemon=True).start()
         return {"status": "started", "message": "Full pipeline triggered manually"}
 
-    @app.get("/")
+    @app.api_route("/", methods=["GET", "HEAD"])
     def health():
         return {"status": "ok"}
 
@@ -625,10 +625,6 @@ def create_app():
                 "api_secret_set": bool(os.environ.get("API_SECRET", "")),
             },
         }
-
-    @app.get("/health")
-    def health():
-        return {"status": "ok"}
 
     return app
 
