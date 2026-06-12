@@ -59,6 +59,8 @@ RUN playwright install chromium --with-deps 2>/dev/null || true
 
 # ---- App source ----
 COPY src/ ./src/
+COPY README.md ./
+COPY config/ ./config/
 RUN pip install --no-cache-dir -e .
 
 # ---- User config is mounted from Render Disk at /data ----
