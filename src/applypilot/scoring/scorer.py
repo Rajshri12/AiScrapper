@@ -155,18 +155,20 @@ def run_scoring(limit: int = 0, rescore: bool = False) -> dict:
 
         results.append(result)
 
-        log.info(
-            "[%d/%d] score=%d  %s",
-            completed, len(jobs), result["score"], job.get("title", "?")[:60],
-        )
-
-    # Write scores to DB
-    now = datetime.now(timezone.utc).isoformat()
-    for r in results:
+        # Write immediately so /status reflects progress in real time
+        now = datetime.now(timezone.utc).isoformat()
         conn.execute(
             "UPDATE jobs SET fit_score = ?, score_reasoning = ?, scored_at = ?, legitimacy_score = ? WHERE url = ?",
-            (r["score"], f"{r['keywords']}\n{r['reasoning']}", now, r.get("legitimacy", "1"), r["url"]),
+            (result["score"], f"{result['keywords']}\n{result['reasoning']}", now, result.get("legitimacy", "1"), result["url"]),
         )
+        if completed % 50 == 0:
+            conn.commit()
+            log.info("[%d/%d] scored so far, latest score=%d  %s",
+                     completed, len(jobs), result["score"], job.get("title", "?")[:60])
+        else:
+            log.debug("[%d/%d] score=%d  %s",
+                      completed, len(jobs), result["score"], job.get("title", "?")[:60])
+
     conn.commit()
 
     elapsed = time.time() - t0
