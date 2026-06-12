@@ -37,6 +37,8 @@ log = logging.getLogger(__name__)
 # ── Scheduler state (module-level so lifespan can start/stop it) ─────────────
 _scheduler = None
 _pipeline_lock = threading.Lock()  # prevent overlapping pipeline runs
+_pipeline_stage = "idle"           # current stage name, readable via /status
+_pipeline_stage_started = None     # ISO timestamp when current stage started
 
 
 def _backlog_pending() -> int:
@@ -57,13 +59,21 @@ def _backlog_pending() -> int:
     return unscored + untailored + unnotified
 
 
+def _set_stage(name: str) -> None:
+    global _pipeline_stage, _pipeline_stage_started
+    _pipeline_stage = name
+    _pipeline_stage_started = datetime.now(timezone.utc).isoformat()
+    log.info("[pipeline] ── STAGE: %s ──────────────────────", name.upper())
+
+
 def _run_full_pipeline() -> None:
     """Backlog-first pipeline: clear score→tailor→cover→notify before discovering new jobs."""
+    global _pipeline_stage, _pipeline_stage_started
     if not _pipeline_lock.acquire(blocking=False):
         log.info("[cron] Pipeline already running — skipping this tick")
         return
     try:
-        log.info("[cron] Starting pipeline run...")
+        _set_stage("starting")
         from applypilot.config import load_env
         load_env()
 
@@ -73,30 +83,44 @@ def _run_full_pipeline() -> None:
         )
 
         backlog = _backlog_pending()
-        if backlog > 0:
-            log.info("[cron] Backlog: %d jobs pending — clearing before discovery", backlog)
+        log.info("[pipeline] Backlog check: %d jobs pending (unscored+untailored+unnotified)", backlog)
+
+        if backlog == 0:
+            _set_stage("discover")
+            result = _run_discover()
+            log.info("[pipeline] Discover result: %s", result)
+
+            _set_stage("enrich")
+            result = _run_enrich()
+            log.info("[pipeline] Enrich result: %s", result)
         else:
-            # No backlog — discover fresh jobs first
-            log.info("[cron] Stage: discover")
-            _run_discover()
-            log.info("[cron] Stage: enrich")
-            _run_enrich()
+            log.info("[pipeline] Skipping discovery — clearing backlog first")
 
-        # Always run the processing stages to clear whatever is pending
-        log.info("[cron] Stage: score")
-        _run_score()
-        log.info("[cron] Stage: tailor")
-        _run_tailor(min_score=6)
-        log.info("[cron] Stage: cover")
-        _run_cover(min_score=6)
-        log.info("[cron] Stage: pdf")
-        _run_pdf()
-        log.info("[cron] Stage: notify")
-        _run_notify(min_score=6, referral_threshold=9)
+        _set_stage("score")
+        result = _run_score()
+        log.info("[pipeline] Score result: %s", result)
 
-        log.info("[cron] Pipeline run complete")
+        _set_stage("tailor")
+        result = _run_tailor(min_score=6)
+        log.info("[pipeline] Tailor result: %s", result)
+
+        _set_stage("cover")
+        result = _run_cover(min_score=6)
+        log.info("[pipeline] Cover result: %s", result)
+
+        _set_stage("pdf")
+        result = _run_pdf()
+        log.info("[pipeline] PDF result: %s", result)
+
+        _set_stage("notify")
+        result = _run_notify(min_score=6, referral_threshold=9)
+        log.info("[pipeline] Notify result: %s", result)
+
+        _set_stage("idle")
+        log.info("[pipeline] Run complete")
     except Exception as e:
-        log.error("[cron] Pipeline run failed: %s", e, exc_info=True)
+        log.error("[pipeline] CRASHED at stage '%s': %s", _pipeline_stage, e, exc_info=True)
+        _pipeline_stage = f"error:{_pipeline_stage}"
     finally:
         _pipeline_lock.release()
 
@@ -627,13 +651,19 @@ def create_app():
             if job and job.next_run_time:
                 next_run = job.next_run_time.isoformat()
 
+        busy = not _pipeline_lock.acquire(blocking=False)
+        if not busy:
+            _pipeline_lock.release()
+
         return {
             "pipeline": stats,
             "scheduler": {
                 "running": bool(_scheduler and _scheduler.running),
                 "interval_hours": interval_hours,
                 "next_run": next_run,
-                "pipeline_busy": not _pipeline_lock.acquire(blocking=False) or _pipeline_lock.release() or False,
+                "pipeline_busy": busy,
+                "current_stage": _pipeline_stage,
+                "stage_started_at": _pipeline_stage_started,
             },
             "config": {
                 "webhook_configured": bool(webhook_url),
