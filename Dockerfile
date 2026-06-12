@@ -2,7 +2,7 @@
 # Stages: base → python deps → chromium → app
 FROM python:3.12-slim AS base
 
-# System deps: chromium (headless), pdflatex, Node.js (for Claude Code CLI)
+# System deps: chromium (headless), pdflatex
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Chromium headless
     chromium \
@@ -18,15 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Network / DNS + download tools
     ca-certificates \
     curl \
-    # Node.js runtime (needed to install Claude Code CLI via npm)
-    nodejs \
-    npm \
     # Build tools needed by some Python wheels
     gcc \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Claude Code CLI (the terminal tool that drives auto-apply)
-RUN npm install -g @anthropic-ai/claude-code
 
 # Tell Playwright / our chrome.py where Chromium lives
 ENV CHROME_PATH=/usr/bin/chromium
