@@ -3,8 +3,8 @@
 Primary path  (when MiKTeX/TeX Live installed):
   JSON data  ->  latex.py  ->  pdflatex  ->  PDF   (Jake's Resume style)
 
-Fallback path (no LaTeX):
-  .txt file  ->  HTML/CSS  ->  Playwright headless Chrome  ->  PDF
+No LaTeX / no Playwright: logs an error and raises RuntimeError.
+Callers must catch — the pipeline continues without PDF for that job.
 """
 
 import logging
@@ -367,73 +367,36 @@ def convert_to_pdf(
     data: dict | None = None,
     profile: dict | None = None,
 ) -> Path:
-    """Convert a resume to PDF.
+    """Convert a resume to PDF via LaTeX (pdflatex required).
 
-    Tries the LaTeX path first (pdflatex must be installed). If LaTeX is not
-    available or fails, falls back to the HTML/CSS + Playwright path.
-
-    Args:
-        text_path:   Path to the .txt file (used for fallback + html_only).
-        output_path: Optional override for output path.
-        html_only:   If True, output HTML instead of PDF (fallback path only).
-        data:        Raw LLM JSON dict — used for LaTeX path. If None, the
-                     sibling _DATA.json file is loaded automatically.
-        profile:     User profile dict — used for LaTeX path. If None, loaded
-                     from disk automatically.
-
-    Returns:
-        Path to the generated PDF (or HTML) file.
+    Raises RuntimeError if pdflatex is missing or compilation fails.
+    Callers must catch — the pipeline continues without PDF for that job.
     """
     text_path = Path(text_path)
     out = Path(output_path) if output_path else text_path.with_suffix(".pdf")
 
-    if not html_only:
-        # ── Try LaTeX path ───────────────────────────────────────────────
-        from applypilot.scoring.latex import find_pdflatex, convert_json_to_pdf
+    from applypilot.scoring.latex import find_pdflatex, convert_json_to_pdf
 
-        if find_pdflatex():
-            # Load JSON data if not passed in directly
-            if data is None:
-                data_path = text_path.with_name(
-                    text_path.stem + "_DATA.json"
-                )
-                if data_path.exists():
-                    import json as _json
-                    data = _json.loads(data_path.read_text(encoding="utf-8"))
+    if not find_pdflatex():
+        raise RuntimeError("pdflatex not found — install TeX Live or MiKTeX to generate PDFs")
 
-            if data is not None:
-                if profile is None:
-                    try:
-                        from applypilot.config import load_profile
-                        profile = load_profile()
-                    except Exception:
-                        profile = {}
+    if data is None:
+        data_path = text_path.with_name(text_path.stem + "_DATA.json")
+        if data_path.exists():
+            import json as _json
+            data = _json.loads(data_path.read_text(encoding="utf-8"))
 
-                try:
-                    return convert_json_to_pdf(data, profile, out)
-                except Exception as e:
-                    log.warning(
-                        "LaTeX compilation failed (%s) — falling back to HTML/CSS.", e
-                    )
-            else:
-                log.debug("No _DATA.json found for %s — using HTML/CSS fallback.", text_path.name)
-        else:
-            log.debug("pdflatex not on PATH — using HTML/CSS fallback.")
+    if data is None:
+        raise RuntimeError(f"No _DATA.json found for {text_path.name} — cannot generate LaTeX PDF")
 
-    # ── HTML/CSS fallback ────────────────────────────────────────────────
-    text = text_path.read_text(encoding="utf-8")
-    resume = parse_resume(text)
-    html = build_html(resume)
+    if profile is None:
+        try:
+            from applypilot.config import load_profile
+            profile = load_profile()
+        except Exception as e:
+            raise RuntimeError(f"Failed to load profile for PDF generation: {e}") from e
 
-    if html_only:
-        html_out = Path(output_path) if output_path else text_path.with_suffix(".html")
-        html_out.write_text(html, encoding="utf-8")
-        log.info("HTML generated: %s", html_out)
-        return html_out
-
-    render_pdf(html, str(out))
-    log.info("PDF generated (HTML/CSS): %s", out)
-    return out
+    return convert_json_to_pdf(data, profile, out)
 
 
 def batch_convert(limit: int = 50) -> int:

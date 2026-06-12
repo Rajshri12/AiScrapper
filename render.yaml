@@ -1,12 +1,10 @@
 services:
-  # ── Cron Job: runs the full pipeline on a schedule ──────────────────────────
-  # Change to type: worker if you want always-on (Background Worker mode)
-  - type: cron
+  # ── Web Service: always-on, APScheduler fires pipeline every 6h ─────────────
+  - type: web
     name: applypilot-pipeline
     runtime: docker
     dockerfilePath: ./Dockerfile
-    # Run every morning at 8:30 AM IST (3:00 AM UTC)
-    schedule: "0 3 * * *"
+    startCommand: uvicorn applypilot.api:app --host 0.0.0.0 --port $PORT
 
     # Persistent disk: mounts at /data so SQLite + resumes survive redeploys
     disk:
@@ -30,14 +28,26 @@ services:
       # Optional
       - key: CAPSOLVER_API_KEY
         sync: false
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: WEBHOOK_URL
+        sync: false
+      - key: WEBHOOK_SECRET
+        sync: false
+      - key: API_SECRET
+        sync: false
 
       # App config
       - key: APPLYPILOT_DIR
         value: /data
       - key: LLM_MODEL
-        value: gpt-4o-mini
+        value: gpt-5.4-nano
       - key: LLM_FALLBACK_MODEL
-        value: gpt-4o-mini
+        value: gpt-5.4-nano
+      - key: CRON_INTERVAL_HOURS
+        value: "6"
+      - key: CRON_RUN_ON_STARTUP
+        value: "true"
 
       # Chromium headless — no display needed
       - key: CHROME_PATH
