@@ -1,0 +1,46 @@
+# ApplyPilot search configuration
+# Jobs posted in last 5 days, remote + hybrid Bengaluru
+
+defaults:
+  hours_old: 120        # 5 days
+  results_per_site: 50
+  country_indeed: "india"
+
+sites:
+  - linkedin
+  - indeed
+  - glassdoor
+  # zip_recruiter — blocked by Cloudflare WAF on cloud IPs
+
+locations:
+  - location: "Bengaluru, Karnataka, India"
+    remote: false
+  - location: "India"
+    remote: true
+
+glassdoor_location_map:
+  "Bengaluru, Karnataka, India": "Bengaluru"
+  "India": "India"
+
+# Accept only remote or hybrid jobs (reject pure onsite)
+location_filters:
+  accept: ["remote", "hybrid", "bengaluru", "bangalore", "india"]
+  reject: ["onsite only", "on-site only"]
+
+websearch:
+  enabled: true   # RemoteOK, Remotive, Himalayas, WeWorkRemotely
+
+india_boards:
+  enabled: true   # Naukri, Foundit
+
+queries:
+  - query: "Backend Engineer"
+  - query: "Software Engineer"
+  - query: "Full Stack Engineer"
+  - query: "Full Stack Developer"
+  - query: "AI Engineer"
+  - query: "AI Agentic Engineer"
+  - query: "Junior Software Engineer"
+  - query: "Associate Software Engineer"
+  - query: "Python Developer"
+  - query: "Java Developer"

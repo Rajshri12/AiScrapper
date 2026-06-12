@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 import threading
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -84,10 +85,26 @@ def _run_full_pipeline() -> None:
         _pipeline_lock.release()
 
 
+def _seed_config_files():
+    """Copy repo config/ files to APP_DIR on first boot if missing."""
+    import shutil
+    from applypilot.config import APP_DIR
+    repo_config = Path(__file__).parent.parent.parent / "config"
+    if not repo_config.exists():
+        return
+    APP_DIR.mkdir(parents=True, exist_ok=True)
+    for src in repo_config.iterdir():
+        dest = APP_DIR / src.name
+        if not dest.exists():
+            shutil.copy2(src, dest)
+            log.info("[init] Seeded %s → %s", src.name, dest)
+
+
 @asynccontextmanager
 async def _lifespan(app):
     global _scheduler
     from applypilot.config import load_env
+    _seed_config_files()
     load_env()
 
     interval_hours = float(os.environ.get("CRON_INTERVAL_HOURS", "6"))

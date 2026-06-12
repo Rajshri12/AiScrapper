@@ -1,0 +1,63 @@
+{
+  "personal": {
+    "full_name": "Raj Shri Guru",
+    "preferred_name": "Raj",
+    "email": "rajshreeguru0@gmail.com",
+    "phone": "+917781093999",
+    "mobile": "+917781093999",
+    "location": "Bengaluru, India",
+    "city": "Bengaluru",
+    "province_state": "Karnataka",
+    "country": "India",
+    "address": "Rajajinagar, Bangalore, Karnataka, India",
+    "postal_code": "560010",
+    "linkedin_url": "https://www.linkedin.com/in/raj-shri/",
+    "github_url": "https://github.com/Rajshri12",
+    "portfolio_url": "https://rajshriguru.com",
+    "current_job_title": "Trainee Software Engineer"
+  },
+  "work_authorization": {
+    "legally_authorized_to_work": "Yes — authorized to work in India",
+    "require_sponsorship": "No",
+    "citizenship": "Indian",
+    "work_permit_type": "Indian Citizen — no sponsorship required"
+  },
+  "compensation": {
+    "salary_expectation": "1000000",
+    "salary_range_min": "1000000",
+    "salary_range_max": "1500000",
+    "salary_currency": "INR",
+    "currency_conversion_note": "Role posted in USD? Target midpoint of their range. Convert at current INR/USD rate."
+  },
+  "experience": {
+    "years_of_experience_total": "2",
+    "education_level": "Bachelor of Engineering, Electronics and Telecommunication",
+    "target_role": "Software Engineer / Backend Engineer"
+  },
+  "availability": {
+    "earliest_start_date": "Immediately",
+    "notice_period": "15 days"
+  },
+  "eeo_voluntary": {
+    "gender": "Female",
+    "race_ethnicity": "Asian",
+    "veteran_status": "I am not a protected veteran",
+    "disability_status": "No disability",
+    "sexual_orientation": "Heterosexual"
+  },
+  "skills_boundary": {
+    "Languages": ["Python", "Java", "TypeScript", "JavaScript"],
+    "Backend and API": ["REST API Design", "Microservices", "FastAPI", "Spring Boot"],
+    "Databases and Data": ["PostgreSQL", "MongoDB", "SQLite", "Prisma ORM", "Alembic"],
+    "AI/ML and LLMs": ["LangGraph", "Multi-Agent Orchestration", "RAG", "Autonomous Agents", "OpenAI API"],
+    "Cloud and DevOps": ["Docker", "Linux", "CI/CD Pipelines", "Databricks", "Git", "Jenkins", "Shell Scripting", "PySpark"]
+  },
+  "resume_facts": {
+    "preserved_companies": ["Radware", "Fidelity Investments"],
+    "preserved_projects": ["IronCoder", "MindMesh"],
+    "preserved_school": "Dayananda Sagar College of Engineering",
+    "graduation_year": "2023",
+    "gpa": "CGPA: 9.40/10",
+    "real_metrics": ["200+ distributed security appliances", "40%", "5%", "22%", "9.40/10", "2+ years"]
+  }
+}
