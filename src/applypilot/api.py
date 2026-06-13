@@ -190,7 +190,7 @@ try:
         company: str = ""
         location: str = ""
         description: str = ""  # full JD text — skips enrichment if provided
-        priority: bool = False
+        force: bool = True     # skip score/SWE gates — always tailor, cover, notify
 
     class PipelineRunRequest(BaseModel):
         stages: list[str] = ["all"]
@@ -253,8 +253,12 @@ def create_app():
 
     # ── Background job runner ───────────────────────────────────────────────
 
-    def _run_single_job_pipeline(job_url: str) -> None:
-        """Enrich → tailor → re-score tailored resume → if 8+ cover + notify, else drop."""
+    def _run_single_job_pipeline(job_url: str, force: bool = False) -> None:
+        """Enrich → tailor → cover → notify for a single job URL.
+
+        force=True: skip SWE keyword filter and score gate — always craft resume,
+        cover letter, and notify regardless of fit score.
+        """
         import json, re
         from applypilot.database import get_connection, init_db
         from applypilot.config import load_env, RESUME_PATH, TAILORED_DIR, COVER_LETTER_DIR, load_profile
@@ -309,18 +313,19 @@ def create_app():
             log.warning("  dropping: no description extracted")
             return
 
-        # ── Is this a software role? quick keyword filter ────────────────────
-        desc_lower = (job.get("full_description") or "").lower()
-        title_lower = (job.get("title") or "").lower()
-        swe_keywords = {
-            "software", "engineer", "developer", "programming", "frontend", "backend",
-            "fullstack", "full stack", "full-stack", "devops", "data", "machine learning",
-            "ml", "ai", "python", "javascript", "typescript", "java", "react", "node",
-            "api", "cloud", "aws", "gcp", "azure", "swe", "sde", "intern", "web", "mobile",
-        }
-        if not any(kw in title_lower or kw in desc_lower[:500] for kw in swe_keywords):
-            log.info("  dropping: not a software role (%s)", job.get("title"))
-            return
+        # ── Is this a software role? quick keyword filter (skipped when force=True) ─
+        if not force:
+            desc_lower = (job.get("full_description") or "").lower()
+            title_lower = (job.get("title") or "").lower()
+            swe_keywords = {
+                "software", "engineer", "developer", "programming", "frontend", "backend",
+                "fullstack", "full stack", "full-stack", "devops", "data", "machine learning",
+                "ml", "ai", "python", "javascript", "typescript", "java", "react", "node",
+                "api", "cloud", "aws", "gcp", "azure", "swe", "sde", "intern", "web", "mobile",
+            }
+            if not any(kw in title_lower or kw in desc_lower[:500] for kw in swe_keywords):
+                log.info("  dropping: not a software role (%s)", job.get("title"))
+                return
 
         # ── Tailor (unconditionally — no pre-score gate) ─────────────────────
         if not job.get("tailored_resume_path"):
@@ -390,11 +395,11 @@ def create_app():
         job = _reload()
 
         fit_score = job.get("fit_score") or 0
-        if fit_score < 8:
+        if not force and fit_score < 8:
             log.info("  dropping: tailored score=%s (need 8+)", fit_score)
             return
 
-        log.info("  score=%s >= 8 — proceeding to cover + notify", fit_score)
+        log.info("  score=%s — proceeding to cover + notify (force=%s)", fit_score, force)
 
         # ── Cover letter ─────────────────────────────────────────────────────
         if not job.get("cover_letter_path"):
@@ -443,8 +448,8 @@ def create_app():
             except Exception as e:
                 log.error("  [notify] webhook failed: %s", e)
 
-        # ── Email: if score 9+ send resume + cover letter + JD to NOTIFY_EMAIL ─
-        if fit_score >= 9:
+        # ── Email: always when force=True, else only score 9+ ───────────────────
+        if force or fit_score >= 9:
             try:
                 import smtplib
                 from email.mime.multipart import MIMEMultipart
@@ -567,24 +572,12 @@ def create_app():
         except Exception:
             inserted = False  # already exists
 
-        def _run():
-            try:
-                from applypilot.pipeline import _run_enrich, _run_score, _run_tailor, _run_cover, _run_pdf, _run_notify
-                from applypilot.config import load_env
-                load_env()
-                # Enrich only if no JD was provided
-                if not req.description:
-                    _run_enrich()
-                _run_score()
-                _run_tailor(min_score=1)   # min_score=1 so this specific job always gets tailored
-                _run_cover(min_score=1)
-                _run_pdf()
-                _run_notify(min_score=1, referral_threshold=9)
-                log.info("[enqueue] Pipeline complete for %s", req.url)
-            except Exception as e:
-                log.error("[enqueue] Pipeline failed for %s: %s", req.url, e, exc_info=True)
-
-        threading.Thread(target=_run, daemon=True).start()
+        threading.Thread(
+            target=_run_single_job_pipeline,
+            args=(req.url,),
+            kwargs={"force": req.force},
+            daemon=True,
+        ).start()
         return {
             "status": "queued",
             "url": req.url,
