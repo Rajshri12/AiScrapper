@@ -186,6 +186,10 @@ try:
 
     class EnqueueRequest(BaseModel):
         url: str
+        title: str = ""
+        company: str = ""
+        location: str = ""
+        description: str = ""  # full JD text — skips enrichment if provided
         priority: bool = False
 
     class PipelineRunRequest(BaseModel):
@@ -540,14 +544,52 @@ def create_app():
 
     @app.post("/jobs/enqueue", dependencies=[Depends(_require_auth)])
     def enqueue_job(req: EnqueueRequest):
-        """Submit a job URL. Pipeline runs in background, results POSTed to WEBHOOK_URL."""
-        import threading
-        _insert_job_stub(req.url)
-        threading.Thread(target=_run_single_job_pipeline, args=(req.url,), daemon=True).start()
+        """Submit a job URL (+ optional JD). Runs score→tailor→cover→notify in background."""
+        from applypilot.database import init_db, get_connection
+        init_db()
+        conn = get_connection()
+        now = datetime.now(timezone.utc).isoformat()
+
+        # Insert or ignore if already exists
+        try:
+            jd = req.description or None
+            conn.execute(
+                """INSERT INTO jobs
+                   (url, title, site, location, description, full_description,
+                    strategy, discovered_at, detail_scraped_at)
+                   VALUES (?,?,?,?,?,?,?,?,?)""",
+                (req.url, req.title or req.url, req.company or "manual",
+                 req.location, jd, jd, "manual", now,
+                 now if jd else None),  # skip enrichment if JD provided
+            )
+            conn.commit()
+            inserted = True
+        except Exception:
+            inserted = False  # already exists
+
+        def _run():
+            try:
+                from applypilot.pipeline import _run_enrich, _run_score, _run_tailor, _run_cover, _run_pdf, _run_notify
+                from applypilot.config import load_env
+                load_env()
+                # Enrich only if no JD was provided
+                if not req.description:
+                    _run_enrich()
+                _run_score()
+                _run_tailor(min_score=1)   # min_score=1 so this specific job always gets tailored
+                _run_cover(min_score=1)
+                _run_pdf()
+                _run_notify(min_score=1, referral_threshold=9)
+                log.info("[enqueue] Pipeline complete for %s", req.url)
+            except Exception as e:
+                log.error("[enqueue] Pipeline failed for %s: %s", req.url, e, exc_info=True)
+
+        threading.Thread(target=_run, daemon=True).start()
         return {
             "status": "queued",
             "url": req.url,
-            "message": "Pipeline started. Results will be sent to WEBHOOK_URL when complete.",
+            "inserted": inserted,
+            "message": "Pipeline started — score→tailor→cover→notify running in background.",
         }
 
     @app.get("/jobs")
