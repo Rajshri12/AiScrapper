@@ -41,9 +41,9 @@ services:
       - key: APPLYPILOT_DIR
         value: /data
       - key: LLM_MODEL
-        value: gpt-5.4-nano
+        value: gpt-4o-mini
       - key: LLM_FALLBACK_MODEL
-        value: gpt-5.4-nano
+        value: gpt-4o-mini
       # DO NOT set GEMINI_API_KEY here — leave unset so OpenAI is used (Gemini free tier = 15 RPM, too slow)
       - key: CRON_INTERVAL_HOURS
         value: "6"
