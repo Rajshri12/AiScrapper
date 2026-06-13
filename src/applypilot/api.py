@@ -32,6 +32,28 @@ from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import unquote
 
+# Configure logging early so all pipeline output is visible in Render logs.
+# uvicorn only configures its own logger; applypilot loggers are silent by default.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%SZ",
+)
+# Silence noisy libs
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("playwright").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+
+class _SuppressHealthCheck(logging.Filter):
+    """Drop uvicorn access log lines for GET/HEAD / (Render health checks)."""
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        return not (('GET / ' in msg or 'HEAD / ' in msg) and '200' in msg)
+
+logging.getLogger("uvicorn.access").addFilter(_SuppressHealthCheck())
+
 log = logging.getLogger(__name__)
 
 # ── Scheduler state (module-level so lifespan can start/stop it) ─────────────
