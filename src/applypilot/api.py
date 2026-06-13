@@ -448,69 +448,7 @@ def create_app():
             except Exception as e:
                 log.error("  [notify] webhook failed: %s", e)
 
-        # ── Email: always when force=True, else only score 9+ ───────────────────
-        if force or fit_score >= 9:
-            try:
-                import smtplib
-                from email.mime.multipart import MIMEMultipart
-                from email.mime.text import MIMEText
-                from email.mime.application import MIMEApplication
-                from pathlib import Path as _Path
-
-                smtp_user  = os.environ.get("SMTP_USER", "")
-                smtp_pass  = os.environ.get("SMTP_PASS", "")
-                notify_email = os.environ.get("NOTIFY_EMAIL", "")
-
-                if smtp_user and smtp_pass and notify_email:
-                    title   = job.get("title") or "Role"
-                    company = job.get("site") or ""
-                    apply_url = job.get("application_url") or job.get("url", "")
-                    jd_text = (job.get("full_description") or "")[:3000]
-
-                    html = f"""<html><body style="font-family:sans-serif;max-width:640px;margin:auto;color:#222">
-<h2 style="color:#4CAF50">&#127775; Strong Match — {fit_score}/10: {title} @ {company}</h2>
-
-<div style="background:#fff8e1;border-left:4px solid #FFC107;padding:14px 18px;border-radius:4px;margin:16px 0">
-  <strong>&#128276; Referral Request</strong><br>
-  If you know anyone at <strong>{company}</strong>, please consider passing along my resume and putting in a referral. Referred candidates are significantly more likely to move forward — it would mean a lot!
-</div>
-
-<p><strong>Apply link:</strong> <a href="{apply_url}">{apply_url}</a></p>
-<p><strong>Fit Score:</strong> {fit_score}/10 — tailored resume and cover letter attached.</p>
-<hr style="border:none;border-top:1px solid #eee;margin:16px 0">
-<h3>Job Description</h3>
-<pre style="white-space:pre-wrap;font-size:13px;color:#444">{jd_text}</pre>
-<p style="color:#888;font-size:12px;margin-top:32px">Sent by ApplyPilot</p>
-</body></html>"""
-
-                    msg = MIMEMultipart("mixed")
-                    msg["Subject"] = f"\U0001f31f {fit_score}/10 — {title} @ {company}"
-                    msg["From"]    = smtp_user
-                    msg["To"]      = notify_email
-                    msg.attach(MIMEText(html, "html"))
-
-                    # Attach resume PDF
-                    resume_p = _Path(job.get("tailored_resume_path") or "")
-                    if resume_p.exists():
-                        part = MIMEApplication(resume_p.read_bytes(), Name=resume_p.name)
-                        part["Content-Disposition"] = f'attachment; filename="{resume_p.name}"'
-                        msg.attach(part)
-
-                    # Attach cover letter PDF
-                    cover_p = _Path(job.get("cover_letter_path") or "")
-                    if cover_p.exists():
-                        part = MIMEApplication(cover_p.read_bytes(), Name=cover_p.name)
-                        part["Content-Disposition"] = f'attachment; filename="{cover_p.name}"'
-                        msg.attach(part)
-
-                    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-                        server.login(smtp_user, smtp_pass)
-                        server.send_message(msg)
-                    log.info("  [email] sent to %s (score=%s)", notify_email, fit_score)
-                else:
-                    log.debug("  [email] skipped — SMTP_USER/SMTP_PASS/NOTIFY_EMAIL not set")
-            except Exception as e:
-                log.error("  [email] failed: %s", e)
+        # Email intentionally removed — notifications go to the app via webhook only
 
         log.info("Pipeline complete for: %s", job_url)
 
